@@ -96,12 +96,14 @@ class NetMaxTracker(object):
 
     def _init_with_net(self, net):
         self.max_trackers = {}
+        # print('layers {} and is_conv {}'.format(self.layers, self.is_conv))
 
         for layer,is_conv in zip(self.layers, self.is_conv):
             blob = net.blobs[layer].data
             self.max_trackers[layer] = MaxTracker(is_conv, blob.shape[1], n_top = self.n_top,
                                                   initial_val = self.initial_val,
                                                   dtype = blob.dtype)
+            # print('what about here')
         self.init_done = True
         
     def update(self, net, image_idx, image_class):
@@ -110,9 +112,10 @@ class NetMaxTracker(object):
             self._init_with_net(net)
 
         for layer in self.layers:
+            # print('beginning update for layer {}'.format(str(layer)))
             blob = net.blobs[layer].data
             self.max_trackers[layer].update(blob, image_idx, image_class)
-
+            # print('made it to updated max_trackers')
 
 def load_file_list(filelist):
     image_filenames = []
@@ -131,7 +134,14 @@ def scan_images_for_maxes(net, datadir, filelist, n_top):
     print 'Scanning %d files' % len(image_filenames)
     print '  First file', os.path.join(datadir, image_filenames[0])
 
-    tracker = NetMaxTracker(n_top = n_top)
+    tracker = NetMaxTracker(n_top = n_top, layers=[layer_name  
+                                    for layer_name in net._layer_names if
+                                    ((layer_name != 'input') and 
+                                        ('Conv' in net.layers[list(net._layer_names).index(layer_name)].type))], 
+                            is_conv=[layer_name  
+                                    for layer_name in net._layer_names if
+                                    ((layer_name != 'input') and 
+                                        ('Conv' in net.layers[list(net._layer_names).index(layer_name)].type))])
     for image_idx in xrange(len(image_filenames)):
         filename = image_filenames[image_idx]
         image_class = image_labels[image_idx]
@@ -142,7 +152,7 @@ def scan_images_for_maxes(net, datadir, filelist, n_top):
         with WithTimer('Load image', quiet = not do_print):
             im = caffe.io.load_image(os.path.join(datadir, filename))
         with WithTimer('Predict   ', quiet = not do_print):
-            net.predict([im], oversample = False)   # Just take center crop
+            net.predict([im])#, oversample = False)   # Just take center crop
         with WithTimer('Update    ', quiet = not do_print):
             tracker.update(net, image_idx, image_class)
 
@@ -189,8 +199,11 @@ def save_representations(net, datadir, filelist, layer, first_N = None):
 def get_max_data_extent(net, layer, rc, is_conv):
     '''Gets the maximum size of the data layer that can influence a unit on layer.'''
     if is_conv:
+        print(layer)
         conv_size = net.blobs[layer].data.shape[2:4]        # e.g. (13,13) for conv5
+        print(conv_size)
         layer_slice_middle = (conv_size[0]/2,conv_size[0]/2+1, conv_size[1]/2,conv_size[1]/2+1)   # e.g. (6,7,6,7,), the single center unit
+        print(layer_slice_middle)
         data_slice = rc.convert_region(layer, 'data', layer_slice_middle)
         return data_slice[1]-data_slice[0], data_slice[3]-data_slice[2]   # e.g. (163, 163) for conv5
     else:
@@ -215,6 +228,7 @@ def output_max_patches(max_tracker, net, layer, idx_begin, idx_end, num_top, dat
     assert idx_end >= idx_begin, 'Range error'
 
     size_ii, size_jj = get_max_data_extent(net, layer, rc, mt.is_conv)
+    print(size_ii, size_jj)
     data_size_ii, data_size_jj = net.blobs['data'].data.shape[2:4]
     
     n_total_images = (idx_end-idx_begin) * num_top
@@ -244,7 +258,19 @@ def output_max_patches(max_tracker, net, layer, idx_begin, idx_end, num_top, dat
                 # Compute the focus area of the data layer
                 layer_indices = (ii,ii+1,jj,jj+1)
                 data_indices = rc.convert_region(layer, 'data', layer_indices)
+                #JORDAN this should be rewritten.. we don't care if its larger just that the difference in indices is larger than the max aka size_ii
+                data_indices = [0 if x < 0 else x for x in data_indices]
+                data_indices = [224 if x>224 else x for x in data_indices]
+                if (data_indices[1] - data_indices[0] > size_ii):
+                    half_difference = int(((data_indices[1]-data_indices[0])-size_ii)/2)
+                    data_indices[1] = data_indices[1] - half_difference
+                    data_indices[0] = data_indices[0] + half_difference
+                if (data_indices[3] - data_indices[2] > size_ii):
+                    half_difference = int(((data_indices[3]-data_indices[2])-size_ii)/2)
+                    data_indices[3] = data_indices[3] - half_difference
+                    data_indices[2] = data_indices[2] + half_difference
                 data_ii_start,data_ii_end,data_jj_start,data_jj_end = data_indices
+                print('data_indices {}'.format(data_indices))
 
                 touching_imin = (data_ii_start == 0)
                 touching_jmin = (data_jj_start == 0)
@@ -286,7 +312,7 @@ def output_max_patches(max_tracker, net, layer, idx_begin, idx_end, num_top, dat
             with WithTimer('Load image', quiet = not do_print):
                 im = caffe.io.load_image(os.path.join(datadir, filename))
             with WithTimer('Predict   ', quiet = not do_print):
-                net.predict([im], oversample = False)   # Just take center crop, same as in scan_images_for_maxes
+                net.predict([im])#, oversample = False)   # Just take center crop, same as in scan_images_for_maxes
 
             if len(net.blobs[layer].data.shape) == 4:
                 reproduced_val = net.blobs[layer].data[0,channel_idx,ii,jj]
@@ -298,6 +324,10 @@ def output_max_patches(max_tracker, net, layer, idx_begin, idx_end, num_top, dat
             if do_maxes:
                 #grab image from data layer, not from im (to ensure preprocessing / center crop details match between image and deconv/backprop)
                 out_arr = np.zeros((3,size_ii,size_jj), dtype='float32')
+                print('out_ii_start {}, out_ii_end {}, out_jj_start {}, out_jj_end {}'.format(out_ii_start, out_ii_end, out_jj_start, out_jj_end))
+                print("data_ii_start {}, data_ii_end {}, data_jj_start {}, data_jj_end {}".format(data_ii_start, data_ii_end, data_jj_start, data_jj_end))
+                print('out_arr shape: {}'.format(out_arr[:, out_ii_start:out_ii_end, out_jj_start:out_jj_end].shape))
+                print('net.blobs[data] shape: {}'.format(net.blobs['data'].data[0,:,data_ii_start:data_ii_end,data_jj_start:data_jj_end].shape))
                 out_arr[:, out_ii_start:out_ii_end, out_jj_start:out_jj_end] = net.blobs['data'].data[0,:,data_ii_start:data_ii_end,data_jj_start:data_jj_end]
                 with WithTimer('Save img  ', quiet = not do_print):
                     save_caffe_image(out_arr, os.path.join(unit_dir, 'maxim_%03d.png' % max_idx_0),

@@ -1,0 +1,40 @@
+FindParams:
+                    blur_every: 0
+                   blur_radius: 0
+                         decay: 0.3
+                     lr_params: {'lr': 100.0}
+                     lr_policy: constant
+                      max_iter: 750
+                  push_channel: 317
+                      push_dir: 1
+                    push_layer: inception_5b/1x1
+                  push_spatial: (0, 0)
+                     push_unit: (317, 0, 0)
+     px_abs_benefit_percentile: 0
+         px_benefit_percentile: 0
+                     rand_seed: 0
+         small_norm_percentile: 20.0
+          small_val_percentile: 0
+                      start_at: mean_plus_rand
+
+
+FindResults:
+                       best_ii: 591
+                      best_obj: 5.55338
+                       best_xx: (3, 224, 224) array [0.0160267648475, 0.117249506127, ...]
+                          dist: [1.02043931465e-14, 2402.60824796, ..., 4607.12542676, 4607.15958855]
+                        idxmax: [(217, 4, 2), (184, 1, 1), ..., (371, 0, 0), (371, 0, 0)]
+                            ii: [0, 1, ..., 748, 749]
+                         ismax: [False, False, ..., False, False]
+                       last_ii: 749
+                      last_obj: 5.09375
+                       last_xx: (3, 224, 224) array [0.0153679508656, 0.123130816606, ...]
+                   majority_ii: 127
+                  majority_obj: 5.23114
+                   majority_xx: (3, 224, 224) array [0.0270976962599, 0.148099352842, ...]
+                   meta_result: Metaresult: majority success
+                          norm: [20.5668045944, 2884.56856285, ..., 48.6505727729, 54.0340840667]
+                           obj: [0.42576, 0.0, ..., 4.76982, 5.09375]
+                           std: [5.58935924311, 4.56639442167, ..., 0.125394440124, 0.13927021709]
+                            x0: (3, 1, 1) array [17.6405234597, 4.00157208367, ...]
+

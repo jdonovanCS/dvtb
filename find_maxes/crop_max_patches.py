@@ -1,9 +1,14 @@
 #! /usr/bin/env python
 
 import argparse
+import numpy as np
 import ipdb as pdb
 import cPickle as pickle
-
+import sys
+sys.path.append('/home/jordan/Development/Thesis/caffe/python/')
+sys.path.append('/home/jordan/Development/Thesis/MaterialClassification/minc-model')
+sys.path.append('/home/jordan/Development/Thesis/deep-visualization-toolbox/')
+import settings
 from loaders import load_imagenet_mean, load_labels, caffe
 from jby_misc import WithTimer
 from max_tracker import output_max_patches
@@ -30,6 +35,8 @@ def main():
     parser.add_argument('filelist',      type = str, help = 'List of image files to consider, one per line. Must be the same filelist used to produce the NetMaxTracker!')
     parser.add_argument('outdir',        type = str, help = r'Which output directory to use. Files are output into outdir/layer/unit_%%04d/{maxes,deconv,backprop}_%%03d.png')
     parser.add_argument('layer',         type = str, help = 'Which layer to output')
+    parser.add_argument('--mean', type = str, default = repr(settings.caffevis_data_mean), help = 'data mean to load')
+
     #parser.add_argument('--mean', type = str, default = '', help = 'data mean to load')
     args = parser.parse_args()
 
@@ -38,17 +45,19 @@ def main():
     else:
         caffe.set_mode_cpu()
 
-    imagenet_mean = load_imagenet_mean()
+    # imagenet_mean = load_imagenet_mean()
+    imagenet_mean = np.array(eval(args.mean))
     net = caffe.Classifier(args.net_prototxt, args.net_weights,
                            mean=imagenet_mean,
                            channel_swap=(2,1,0),
                            raw_scale=255,
-                           image_dims=(256, 256))
+                           image_dims=(224, 224))
 
     assert args.do_maxes or args.do_deconv or args.do_deconv_norm or args.do_backprop or args.do_backprop_norm or args.do_info, 'Specify at least one do_* option to output.'
 
     with open(args.nmt_pkl, 'rb') as ff:
         nmt = pickle.load(ff)
+        print(nmt.max_trackers)
     mt = nmt.max_trackers[args.layer]
 
     if args.idx_begin is None:

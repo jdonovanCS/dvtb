@@ -1,0 +1,12 @@
+4e/1x1 start at 198 optimize_all_1x1.py stop after 4e/1x1
+4d/3x3 start at 185 optimize_all_3x3.py stop after 4e/3x3
+5b/pool_proj start at 15 optimize_all_pool_proj stop after 5b/pool_proj
+5b/3x3_reduce start at 50 optimize_all_3x3_reduce_5b.py stop after 5b/3x3_reduce
+4d/3x3_reduce start at 117 optimize_all_3x3_reduce.py stop after 4e/3x3_reduce
+5b/5x5_reduce start at None optimize_all_5x5_reduce stop after None
+5a/3x3 start at 49 optimize_all_3x3_5a.py stop after 5a/3x3
+5b/3x3 start at 50 optimize_all_3x3_5b.py stop after 5b/3x3
+5a/1x1 start at 52 optimize_all_1x1_5a.py stop after 5a/1x1
+5b/1x1 start at 49 optimize_all_1x1_5b.py stop after 5b/1x1
+5a/3x3_reduce start at 51 optimize_all_3x3_reduce_5a.py stop after 5a/3x3_reduce
+5b/5x5 start at 5 optimize_all_5x5.py stop after 5b/5x5

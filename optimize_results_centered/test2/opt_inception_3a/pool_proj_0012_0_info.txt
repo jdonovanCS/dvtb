@@ -1,0 +1,40 @@
+FindParams:
+                    blur_every: 0
+                   blur_radius: 0
+                         decay: 0.3
+                     lr_params: {'lr': 100.0}
+                     lr_policy: constant
+                      max_iter: 750
+                  push_channel: 12
+                      push_dir: 1
+                    push_layer: inception_3a/pool_proj
+                  push_spatial: (14, 14)
+                     push_unit: (12, 14, 14)
+     px_abs_benefit_percentile: 0
+         px_benefit_percentile: 0
+                     rand_seed: 0
+         small_norm_percentile: 20.0
+          small_val_percentile: 0
+                      start_at: mean_plus_rand
+
+
+FindResults:
+                       best_ii: 593
+                      best_obj: 296.113
+                       best_xx: (3, 224, 224) array [1.42108547152e-14, 1.42108547152e-14, ...]
+                          dist: [1.02043931465e-14, 1395.64997883, ..., 4623.65423418, 4622.28398935]
+                        idxmax: [(26, 26, 0), (26, 0, 0), ..., (12, 14, 16), (12, 14, 16)]
+                            ii: [0, 1, ..., 748, 749]
+                         ismax: [False, False, ..., False, False]
+                       last_ii: 749
+                      last_obj: 213.383
+                       last_xx: (3, 224, 224) array [1.42108547152e-14, 1.42108547152e-14, ...]
+                   majority_ii: 22
+                  majority_obj: 173.514
+                   majority_xx: (3, 224, 224) array [0.00689712899306, 0.00689712899306, ...]
+                   meta_result: Metaresult: majority success
+                          norm: [20.5668045944, 3224.12468762, ..., 392.937481245, 378.170840809]
+                           obj: [12.9467, 21.2505, ..., 144.645, 213.383]
+                           std: [5.58935924311, 3.92449334586, ..., 1.01277925511, 0.974718879592]
+                            x0: (3, 1, 1) array [17.6405234597, 4.00157208367, ...]
+

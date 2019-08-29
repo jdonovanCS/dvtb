@@ -1,8 +1,15 @@
 #! /usr/bin/env python
-
+# from IPython.core.debugger import Pdb
+# ipdb = Pdb()
+import sys
+import numpy as np
+sys.path.append('/home/jordan/Development/Thesis/caffe/python/')
+sys.path.append('/home/jordan/Development/Thesis/MaterialClassification/minc-model')
+sys.path.append('/home/jordan/Development/Thesis/deep-visualization-toolbox/')
 import argparse
 import ipdb as pdb
 import cPickle as pickle
+import settings
 
 from loaders import load_imagenet_mean, load_labels, caffe
 from jby_misc import WithTimer
@@ -19,15 +26,18 @@ def main():
     parser.add_argument('datadir', type = str, default = '.', help = 'directory to look for files in')
     parser.add_argument('filelist', type = str, help = 'list of image files to consider, one per line')
     parser.add_argument('outfile', type = str, help = 'output filename for pkl')
-    #parser.add_argument('--mean', type = str, default = '', help = 'data mean to load')
+    parser.add_argument('--mean', type = str, default = repr(settings.caffevis_data_mean), help = 'data mean to load')
     args = parser.parse_args()
 
-    imagenet_mean = load_imagenet_mean()
+    imagenet_mean = np.array(eval(args.mean))
+    print(imagenet_mean)
+    # imagenet_mean = load_imagenet_mean()
+    print(args.net_prototxt)
     net = caffe.Classifier(args.net_prototxt, args.net_weights,
                            mean=imagenet_mean,
                            channel_swap=(2,1,0),
                            raw_scale=255,
-                           image_dims=(256, 256))
+                           image_dims=(224, 224))
 
     if args.gpu:
         caffe.set_mode_gpu()

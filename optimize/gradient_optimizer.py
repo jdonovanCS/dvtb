@@ -229,6 +229,8 @@ class GradientOptimizer(object):
             push_label = None
         
         for ii in range(params.max_iter):
+            print 'layer: {}'.format(params.push_layer)
+
             # 0. Crop data
             xx = minimum(255.0, maximum(0.0, xx + self.data_mean)) - self.data_mean     # Crop all values to [0,255]
 
@@ -310,7 +312,7 @@ class GradientOptimizer(object):
             # 6. Apply gradient update and regularizations
             if ii < params.max_iter-1:
                 # Skip gradient and regularizations on the very last step (so the above printed info is valid for the last step)
-                xx += lr * grad
+                xx = (lr * grad) + xx
                 xx *= (1 - params.decay)
 
                 if params.blur_every is not 0 and params.blur_radius > 0:
